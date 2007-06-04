@@ -1,0 +1,27 @@
+# Copyright (c) 2006 Arbor Networks, Inc.
+# All rights reserved.  Proprietary and confidential.
+
+Name: Groupwise
+AppID: 33
+Port: tcp/8300
+
+##########
+# Groupwise
+
+# Novell Groupwise
+#
+# http://www.novell.com/products/groupwise/
+#
+# This signature was developed from looking at the gaim plugin for
+# Groupwise written by Novell since no protocol documentation exists.
+# 
+# XXX: anyone know of a Groupwise server we can test against?
+
+groupwise_login = 
+    "POST /login" [^ ]+ " HTTP/1." digit "\r\n"		# HTTP/1.x POST
+    (((any - [\r])+ "\r\n")*) :>> 			# additional HTTP headers
+    ( "\r\n\r\n"					# end of HTTP header
+      "&"? "tag=NM_A_SZ_USERID"i  )			# POST data
+    ;
+
+groupwise = groupwise_login @<MATCH> any*;
