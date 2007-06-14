@@ -89,6 +89,8 @@ def main():
     apps = []
     sigs = []
     for filename in glob.glob('apps/*'):
+        if filename in ['apps/COPYING', 'apps/LICENSE']:
+            continue
         sig = parse_sig(os.path.basename(filename).lower(),
                         open(filename).read())
         sigs.append(sig)
