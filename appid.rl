@@ -62,7 +62,7 @@ struct appid {
 	 * they should update the match when their quality is higher
 	 * than existing match.
 	 */
-	uint16_t	application;    // layer 7 application - e.g. rx, soap or xmlrpc
+	int		application;    // layer 7 application - e.g. rx, soap or xmlrpc
 	int             confidence;
 	uint8_t		ip_protocol;    // TCP/IP layer 3 protocol: 0->UDP, TCP otherwise
 	uint8_t		match_count;      // 0-> no match, 1->no recognized ambiguity, otherwise ambiguous

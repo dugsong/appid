@@ -18854,13 +18854,13 @@ echo "${ECHO_T}no" >&6
   *)
      echo "$as_me:$LINENO: result: $withval" >&5
 echo "${ECHO_T}$withval" >&6
-     if test -x $withval/ragel/ragel; then
+     if test -x $withval/ragel/ragel && test -x $withval/rlgen-cd/rlgen-cd; then
         RAGEL="$withval/ragel/ragel"
 	RLGEN_CD="$withval/rlgen-cd/rlgen-cd"
      fi
      if test "x$RAGEL" = "x"; then
-        { { echo "$as_me:$LINENO: error: ragel not found in $withval" >&5
-echo "$as_me: error: ragel not found in $withval" >&2;}
+        { { echo "$as_me:$LINENO: error: ragel or rlgen-cd not found in $withval" >&5
+echo "$as_me: error: ragel or rlgen-cd not found in $withval" >&2;}
    { (exit 1); exit 1; }; }
      fi
      ;;
