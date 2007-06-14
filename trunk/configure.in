@@ -55,12 +55,12 @@ AC_ARG_WITH(ragel,
      ;;
   *)
      AC_MSG_RESULT($withval)
-     if test -x $withval/ragel/ragel; then
+     if test -x $withval/ragel/ragel && test -x $withval/rlgen-cd/rlgen-cd; then
         RAGEL="$withval/ragel/ragel"
 	RLGEN_CD="$withval/rlgen-cd/rlgen-cd"
      fi
      if test "x$RAGEL" = "x"; then
-        AC_ERROR(ragel not found in $withval)
+        AC_ERROR(ragel or rlgen-cd not found in $withval)
      fi
      ;;
   esac 
