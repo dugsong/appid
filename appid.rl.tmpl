@@ -186,7 +186,7 @@ appid_process(
 #if APPID_DEBUG
 		else if (appid_debug) {
 			if (previous_match_count != a->match_count) 
-			        printf("  ACCEPT <?= machine ?> (app == %%d == '%s')\n",
+			        printf("  ACCEPT <?= machine ?> (app == %d == '%s')\n",
 					a->application, appid_app_to_name(a->application));
 			else 
 				printf("CONTINUE <?= machine ?>\\n");
