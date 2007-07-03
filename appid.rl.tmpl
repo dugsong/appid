@@ -94,7 +94,7 @@ appid_dump_match_conflict(void)
                         for app in apps_by_machine[machine] ]) ?>
 	apps = <?= ' | '.join([ app['name']
                                 for app in apps_by_machine[machine]
-                                if 'appid' in app ]) ?> ;
+                                if 'appid' in app and app.get('ragel') ]) ?> ;
 	main := apps;
 }%%
 
