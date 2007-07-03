@@ -111,7 +111,8 @@ def main():
             try: apps_by_machine[m].remove(r)
             except ValueError: pass
             apps_by_machine[m].insert(0, r)
-        apps_by_machine[m].append(app)
+        if not app in apps_by_machine[m]:
+            apps_by_machine[m].append(app)
 
     # Organize ports by app name.
     app_ports = {}
