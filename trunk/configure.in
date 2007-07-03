@@ -47,27 +47,35 @@ AC_ARG_WITH(ragel,
 [ case "$withval" in
   yes)
      AC_MSG_RESULT(yes)
-     RAGEL="ragel"
-     RLGEN_CD="rlgen-cd"
+     AC_CHECK_PROGS(RAGEL, [ragel])
+     AC_CHECK_PROGS(RLGEN, [rlgen-cd rlcodegen])
      ;;
   no)
      AC_MSG_RESULT(no)
      ;;
   *)
      AC_MSG_RESULT($withval)
-     if test -x $withval/ragel/ragel && test -x $withval/rlgen-cd/rlgen-cd; then
+     if test -x $withval/ragel/ragel; then
         RAGEL="$withval/ragel/ragel"
-	RLGEN_CD="$withval/rlgen-cd/rlgen-cd"
+     fi
+     if test -x $withval/rlgen-cd/rlgen-cd; then
+        RLGEN="$withval/rlgen-cd/rlgen-cd"
+     fi
+     if test -x $withval/rlcodegen/rlcodegen; then
+        RLGEN="$withval/rlcodegen/rlcodegen"
      fi
      if test "x$RAGEL" = "x"; then
-        AC_ERROR(ragel or rlgen-cd not found in $withval)
+        AC_ERROR(ragel not found in $withval)
+     fi
+     if test "x$RLGEN" = "x"; then
+        AC_ERROR(rlgen-cd/rlcodegen not found in $withval)
      fi
      ;;
   esac 
 ],
 [ AC_MSG_RESULT(no) ])
 AC_SUBST(RAGEL)
-AC_SUBST(RLGEN_CD)
+AC_SUBST(RLGEN)
 AM_CONDITIONAL(RAGEL, [test "x$RAGEL" != "x"])
 
 AC_OUTPUT([ Makefile ])

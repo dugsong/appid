@@ -42,7 +42,7 @@ endif
 
 if RAGEL
 appid.c: appid.rl
-	$(RAGEL) appid.rl | $(RLGEN_CD) -G2 -o $@
+	$(RAGEL) appid.rl | $(RLGEN) -G2 -o $@
 endif
 
 genclean: distclean
