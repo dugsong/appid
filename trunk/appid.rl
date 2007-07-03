@@ -393,409 +393,6 @@ kerberos_ticket =
     0xa1 9 	    # Realm GeneralString [1]
     ;
 
-ares_client_connect = 
-    0x03 0x00			# length of client syn
-    0x5a			# client syn command
-    0x06 0x06 0x05		# protocol version
-    ;
-ares = ares_client_connect @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 13;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-bgp4 =
-    0xff{16}				# Marker (must be all 1's for an OPEN message)
-    ((0x00 0x1d..0xff) |		# Length (between 29 and 4096)
-    (0x01..0x10 any))
-    1					# Type (1 = OPEN message)
-    4					# Version = 4
-    any{9}				# My AS, HoldTime, BGP ID, optional params len
-    @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 14;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-bgp = bgp4;
-
-peer_connection =
-    0x13
-    "BitTorrent protocol"
-    ;
-tracker_connection = 
-    "GET /announce?"  
-    ( "info_hash" |
-      "peer_id" |
-      "ip" |
-      "port" |
-      "uploaded" |
-      "downloaded" |
-      "left" |
-      "event" )
-    "=";
-bittorrent = ( peer_connection | tracker_connection ) @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 15;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-citrix_dsniff =
-    0x7f 0x7f 0x49 0x43
-    0x41 0x00
-    ;
-citrix = citrix_dsniff @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 16;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-corba_message =
-    "GIOP"			# magic cookie
-    0x01 0x00			# version (major, minor)
-    (0x00 | 0x01)		# byte order (be, le)
-    (0x00 | 0x01)		# message type (request, reply)
-    any{4}			# message size
-    ;
-corba = corba_message @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 19;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-cups_browsing = 
-    xdigit{1,5} " "		# printer type
-    ( "3" | "4" | "5" ) " "	# printer state (idle, processing, stopped)
-    "ipp://"
-    ;
-cups = cups_browsing @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 20;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-cvs_client_connect = "BEGIN " ( "AUTH" | "VERIFICATION" | "GSSAPI" ) " REQUEST\n";
-cvs_server_response = ( "I LOVE YOU\n" | "I HATE YOU\n" );
-cvs = ( cvs_client_connect | cvs_server_response ) @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 21;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-daap = "GET " "daap://"i @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 22;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-dhcp = 
-    # BOOTP header
-    (1 | 2)			# 1 or 2
-    any* :>>			# 235 arbitrary bytes
-    # DHCP
-    (0x63 0x82 0x53 0x63) @1
-    @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 24;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*
-    ;
-
-edonkey_tcp =
-    (0xe3 | 0xc5 | 0xd4)			# Protocol
-    (((any - 0) 0) | (any (any - 0))) 0 0	# Packet data length
-    0x01					# Hello server
-    ;
-edonkey = edonkey_tcp @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 26;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-fasttrack_transfer =
-    ("GET /.hash=") |
-    ("GET /" any+ 0xd 0xa "X-Kazaa") |
-    ("GIVE ")
-    ;
-fasttrack_udp_ping =
-    0x27					# Message type
-    any{4}					# Minimum encryption type
-    0x80					# Unknown
-    "KaZaA" 0					# Zero terminated network name
-    ;
-fasttrack_udp_pong =
-    0x28					# Message type
-    any{4}					# Minimum encryption type
-    0 any{5}					# Unknown
-    "KaZaA" 0					# Zero terminated network name
-    ;
-fasttrack = (fasttrack_udp_ping | fasttrack_udp_pong | fasttrack_transfer)
-    @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 28;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-ftp = "220" [^\r\n]* [\r\n]+ @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 29;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-gg_welcome = 
-    0x01 0x00 0x00 0x00		# welcome message type
-    0x04 0x00 0x00 0x00		# welcome message length
-    any any any any		# server seed
-    ;
-gadugadu = gg_welcome @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 30;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-gnutella_control = "GNUTELLA CONNECT";
-gnutella_data = ("GET /uri-res/N2R?urn:sha1:" | "GET /get/" digit{1,10} "/");
-gnutella2_udp = "GND" 0x00..0x03;
-gnutella = ( gnutella_control | gnutella_data | gnutella2_udp ) @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 32;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-gopher_unascii = (ascii - [\t\r\n\0]) ;
-gopher_lastline = ".\r\n";
-gopher_client_request =
-    (gopher_unascii+ "\r\n") |	# Menu or file
-    (gopher_unascii+ "\t"	# Search with keyword
-     gopher_unascii+ "\r\n")
-    ;
-gopher_item_type = (lower | upper | digit | punct) ;
-gopher_dir_entry =
-    gopher_item_type
-    gopher_unascii+ "\t"	# User_name
-    gopher_unascii+ "\t"	# Selector
-    gopher_unascii+ "\t"	# Host
-    digit+			# Port
-    "\r\n"
-    ;
-gopher_menu =
-    gopher_dir_entry* 
-    gopher_lastline
-    ;
-gopher_textfile =
-    any*
-    gopher_lastline
-    ;
-gopher_server_response =
-    gopher_menu |
-    gopher_textfile | 
-    any*			# Binary file
-    ;
-gopher = 
-    gopher_client_request
-    # | gopher_server_response - could be anything!
-    @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 120;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } # no any*
-    ;
-
-groupwise_login = 
-    "POST /login" [^ ]+ " HTTP/1." digit "\r\n"		# HTTP/1.x POST
-    (((any - [\r])+ "\r\n")*) :>> 			# additional HTTP headers
-    ( "\r\n\r\n"					# end of HTTP header
-      "&"? "tag=NM_A_SZ_USERID"i  )			# POST data
-    ;
-groupwise = groupwise_login @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 33;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-tpkt_header =
-    0x03		# TPKT version 3
-    0x00		# Reserved field
-    any any		# TPKT packet length
-    ;
-h323_call_setup = 
-    0x08				# Protocol discriminator (Q.931)
-    (0x00) |				# Call reference value
-    (0x01 any{1}) |			# Varies between 0-15 bytes
-    (0x02 any{2}) |			# XXX refactor using Semantic Conditions
-    (0x03 any{3}) |
-    (0x04 any{4}) |
-    (0x05 any{5}) |
-    (0x06 any{6}) |
-    (0x07 any{7}) |
-    (0x08 any{8}) |
-    (0x09 any{9}) |
-    (0x0a any{10}) |
-    (0x0b any{11}) |
-    (0x0c any{12}) |
-    (0x0d any{13}) |
-    (0x0e any{14}) |
-    (0x0f any{15}) 
-    (0x05 | 0x02)			# Message type (Setup, Call Proceding)
-    ;
-h323 = tpkt_header h323_call_setup @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 34;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-http_response_status_line =
-    "HTTP/" digit+ "." digit+ " "	# Version
-    digit{3}				# Status code 
-    [^\r\n]+? [\r\n]+			# Reason phrase
-    ;
-http = 
-    http_response_status_line
-    @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 35;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*
-    ;
-
-icy_server_response = 
-  "ICY"i " "		# Version
-  digit{3} " "  	# Status code
-  [^\r\n]+ [\r\n]+	# Reason phrase
-  ;
-icy = 
-    icy_server_response
-    @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 38;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*
-    ;
-
-imap_text = [^\r\n\0] ;
-imap_tag = [^ +(){%*"'\\\r\n\0]+; # Also excludes "CTL"?
-server_greeting =
-    "* "
-    ("OK"i | "PREAUTH"i | "BYE"i)
-    imap_text* "\r\n"
-    ;
-client_first_command =
-   imap_tag " "
-   (("NOOP"i |		# IMAP command without arguments
-     "CAPABILITY"i |
-     "STARTTLS"i) |
-    ("LOGIN"i |		# IMAP command with arguments
-     "AUTHENTICATE"i |
-     "LOGOUT"i |
-     "SELECT"i |
-     "EXAMINE"i)
-     " " imap_text*)
-   "\r\n"
-   ;
-imap =
-    server_greeting
-    @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 40;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*
-    ;
-
-ipp = 
-   "POST " [^ ]+ " HTTP/1.1\r\n"     # All IPP is POST
-   (((any - [\r])+ "\r\n")*) :>>     # Header lines
-   ("Content-Type:"i [ \t]* 	     # Content-Type: application/ipp
-    "application/ipp\r\n"i)
-   @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 41;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*
-   ;
-
 nick =
     /NICK/i
     " "+ [^ \r\n]+ ( " "+ digit+ )? " "* [\r\n]+;
@@ -812,176 +409,10 @@ irc = ( user nick | nick user ) @{
     }
  } any*;
 
-kerberos_udp = 
-    (kerberos_msg_tag0 | kerberos_msg_tag1 | kerberos_ticket)
-    @{ 
+ssdp = ( "M-SEARCH" | "NOTIFY" ) " * HTTP/1.1\r\n" @{ 
     a->match_count ++;
     if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 45;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*
-    ;
-
-ldap =
-  0x30 any+	        # SEQUENCE
-  0x02 			# INTEGER: Message ID (0 .. 2^31-1)
-    ((1 any{1}) |       #   Length and contents
-     (2 any{2}) |
-     (3 any{3}) |
-     (4 any{4}))
-  (			# CHOICE
-   0x60 | 		# BindRequest (0)
-   0x61 |	        # BindResponse (1)
-   0x62 | 		# UnbindReques (2)
-   0x63 | 		# SearchRequest (3)
-   0x64 | 		# SearchResultEntry (4)
-   0x65 | 		# SearchResutlDone (5)
-   0x71 | 		# SearchResultReference (17) (LDAP v3)
-   0x66 | 		# ModifyRequest (6)
-   0x67 | 		# ModifyResponse (7)
-   0x68 | 		# AddRequest (8)
-   0x69 | 		# AddResponse (9)
-   0x6a | 		# DelRequest (10)
-   0x6b | 		# DelResponse (11)
-   0x6c | 		# ModifyDNRequest (12)
-   0x6d | 		# ModifyDNResponse (13)
-   0x6e | 		# CompareRequest (14)
-   0x6f | 		# CompareResponse (15)
-   0x70 | 		# AbandonRequest (16)
-   0x77 | 		# ExtendedRequest (23) (LDAP v3)
-   0x78 		# ExtendedResponse (24) (LDAP v3)
-  ) # All choices are constructed applications (bits 6 and 7 set)
-  @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 47;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*
-  ;
-
-lpd_space = " \t\v\f"+ ;     # space, tab, vertical tab, form-feed
-lpd_word = (any - [\0\n])+;  # RFC says ASCII, but be less strict
-lpd_receive_job_subcommand = 
-  (0x01 "\n") |			    # Abort
-  (0x02				    # Receive control file
-    digit+ lpd_space		    #   data length
-    "cfA" digit{3} lpd_word "\n") | #   file name
-   #any*			    #   data (see Section 6)
-  (0x03 			    # Receive data file
-    digit+ lpd_space		    #   data length
-    "dfA" digit{3} lpd_word "\n")   #   file name
-   #any*			    #   data (arbitrary)
-  ;
-lpd_request = 
-  (0x01 lpd_word "\n") |	    # Print any waiting jobs
-  (0x02 lpd_word "\n"  	            # Receive a printer job
-    lpd_receive_job_subcommand) |
-  (0x03 lpd_word           	    # Send queue state (short)
-    (lpd_space lpd_word)? "\n") |   #   user names, job numbers
-  (0x04 lpd_word	    	    # Send queue state (long)
-    (lpd_space lpd_word)? "\n") |   #   user names, job numbers
-  (0x05 lpd_word lpd_space	    # Remove jobs
-    lpd_word lpd_space		    #   agent
-    lpd_word "\n")		    #   name
-  ; 
-lpd = 
-  lpd_request
-  @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 49;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-mapi = 
-    dcerpc_bind_pre_uuid
-    dcerpc_uuid_mapi		# MAPI UUID
-    @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 50;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*
-    ;
-
-megaco_eol		= ("\r\n" | "\n");
-megaco_wsp		= (" " | "\t");
-megaco_lwsp		= (megaco_wsp | megaco_eol)*;
-megaco_equal		= (megaco_lwsp "=" megaco_lwsp);
-megaco_sep		= ((megaco_wsp | megaco_eol) megaco_lwsp);
-megaco_authtoken	= ("Authentication"i | "AU"i);
-megaco_megacoptoken	= ("MEGACO"i | "!");
-megaco_seqnum		= ("0x" xdigit{8});
-megaco_securityindex	= ("0x" xdigit{8});
-megaco_authdata		= ("0x" xdigit{24,64});
-megaco_authheader	= megaco_authtoken megaco_equal megaco_securityindex ":" megaco_seqnum ":" megaco_authdata;
-megaco_header		= megaco_megacoptoken "/1" megaco_sep;
-megaco_message		= (megaco_authheader megaco_sep)? megaco_header;
-megaco			= megaco_message @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 52;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-mgcp_eol		= ( "\r\n" | "\n" );
-mgcp_wsp		= ( " " | "\t" );
-mgcp_verb		= ( "EPCF"i | "CRCX"i | "MDCX"i | "DLCX"i | "RQNT"i |
-			    "NTFY"i | "AUEP"i | "AUCX"i | "RSIP"i );
-mgcp_version		= ( "MGCP 1.0" );
-mgcp_transid		= digit{1,9};
-mgcp_command		= mgcp_verb mgcp_wsp{1,} mgcp_transid mgcp_wsp{1,}
-			  any* :>> mgcp_version;
-mgcp			= mgcp_command @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 53;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-msn_notification_cnxn =
-    "VER "			# VER command
-    digit+			# Transaction ID
-    ( " " alnum+ )*		# Any number of protocol versions
-    ( " MSNP" digit+ )		# Must have at least one MSN protocol listed
-    ( " " alnum+ )*		# Any number of protocol versions
-    0xd 0xa;			# \r\n
-msn_switchboard_cnxn =
-    ( "USR " | "ANS " )		# USR (request) or ANS (answer) command
-    digit+			# Transaction ID
-    " "				# Space
-    [^ \r\n]+			# Account name
-    " "				# Space
-    [^ \r\n]+			# Authentication string
-    ( " " [^ \r\n]+ )?		# Switchboard session ID (for "answer" only)
-    0xd 0xa;			# \r\n
-msn_webcam =
-    "recipientid="i alnum+	# Recipient ID
-    "&sessionid="i alnum+	# Session ID
-    0xd 0xa 0xd 0xa;		# \r\n\r\n
-msn =
-    ( msn_notification_cnxn | msn_switchboard_cnxn | msn_webcam ) @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 55;
+        a->application = 101;
         a->confidence = APPID_CONFIDENCE_NORMAL;
         a->match_payload = a->payload_offset + (p - payload);
         if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
@@ -1003,37 +434,10 @@ mute = mute_key_exchange @{
     }
  } any*;
 
-tcp_xmit_magic = 0x44 0x6D 0x64 0x54;
-tcp_rcvd_magic = 0x74 0x4E 0x63 0x50;
-ncp_xmit_header = 
-    tcp_xmit_magic		# signature
-    any{4}			# length
-    0x00 0x00 0x00 0x01		# version
-    0x00 0x00 0x00 0x00		# reply buffer size
-    ;
-ncp_rcvd_header = 
-    tcp_rcvd_magic		# signature
-    any{4}			# length
-    ;
-ncp_service_request = 
-    ncp_xmit_header
-    0x11 0x11			# service connection request
-    0x00			# sequence number
-    0xff			# connection number
-    ;
-ncp_service_reply = 
-    ncp_rcvd_header
-    0x33 0x33			# service connection reply
-    0x00			# sequence number
-    any				# connection number
-    any				# task number
-    0x00			# reserved
-    0x00			# completion code (success)
-    ;
-ncp = ( ncp_service_request | ncp_service_reply ) @{ 
+teamspeak = 0xf4 0xbe 0x03 @{ 
     a->match_count ++;
     if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 58;
+        a->application = 109;
         a->confidence = APPID_CONFIDENCE_NORMAL;
         a->match_payload = a->payload_offset + (p - payload);
         if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
@@ -1166,21 +570,14 @@ netflow = ( netflow1 | netflow5 | netflow7 | netflow8 | netflow9 ) @{
     }
  } any*;
 
-nmdc_commands = 
-    ( "$Lock "i |
-      "$Key "i |
-      "$ValidateNick "i |
-      "$HubName "i |
-      "$ConnectToMe "i );
-nmdc = nmdc_commands @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 62;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
+xml_ws = (' ' | '\r' | '\n' | '\t')+;
+xml_eq = xml_ws? '=' xml_ws?;
+xml_num = [0-9] '.' [0-9];
+xml_enc = [A-Za-z] ([A-Za-z0-9._] | '-')*;
+xml_enc_decl = xml_ws 'encoding' xml_eq ('"' xml_enc '"' | "'" xml_enc "'" );
+xml_version = xml_ws 'version' xml_eq ("'" xml_num "'" | '"' xml_num '"');
+xml_text_decl = '<?xml' xml_version xml_enc_decl? xml_ws? '?>';
+xml = "";
 
 nntp = ("200" | "201") space+ [^\r\n]* [\r\n]+ @{ 
     a->match_count ++;
@@ -1192,135 +589,17 @@ nntp = ("200" | "201") space+ [^\r\n]* [\r\n]+ @{
     }
  } any*;
 
-ntp2 = 
-    (0x00 | 0x01 | 0x02 | 0x03 | 0x04 |  # leap year 0
-     0x40 | 0x41 | 0x42 | 0x43 | 0x44 |  # leap year 1
-     0x80 | 0x81 | 0x02 | 0x83 | 0x84 |  # leap year 2
-     0xc0 | 0xc1 | 0xc2 | 0xc3 | 0xc4)   # leap year 3
-    (0 .. 4)			         # status
-    #any{46}			         # other
-    ;
-ntp4 = 
-    (0x19 | 0x1a | 0x1b | 0x1c | 0x1d | # LY 0, Version 3
-     0x21 | 0x22 | 0x23 | 0x24 | 0x25 | # LY 0, Version 4
-     0x59 | 0x5a | 0x5b | 0x5c | 0x5d | # LY 1, Version 3
-     0x61 | 0x62 | 0x63 | 0x64 | 0x65 | # LY 1, Version 4
-     0x99 | 0x9a | 0x9b | 0x9c | 0x9d | # LY 2, Version 3
-     0xa1 | 0xa2 | 0xa3 | 0xa4 | 0xa5 | # LY 2, Version 3
-     0xd9 | 0xda | 0xdb | 0xdc | 0xdd | # LY 3, Version 3
-     0xe1 | 0xe2 | 0xe3 | 0xe4 | 0xe5)  # LY 3, Version 3
-    (0 .. 15)			        # stratum
-    #any{46}				# other
-    #(any{20})?				# optional
-    ;
-ntp = ntp2 | ntp4 @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 64;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-openft_peer_handshake =
-    0x00 0x00 0x00 0x00			# unused
-    0x00 0x08				# length of handshake message
-    0x00 0x01				# handshake command
-    0x00 0x00				# major version (0)
-    0x00 0x02				# minor version (2)
-    0x00 any				# micro version
-    0x00 any				# revision
-    ;
-openft_filetransfer = 
-    "GET " [^ ]+ " HTTP/1.0\r\n"	# file transfer request
-    (((any - [\r])+ "\r\n")*) :>>	# additional headers
-    "Range: bytes="i			# range of byes to receive
-    ;
-openft = ( openft_peer_handshake | openft_filetransfer ) @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 65;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-pop3_server = 
-    ("+OK "i | "-ERR "i)	# +OK or -ERR
-    [^\r\n]+ [\r\n]+		# Rest of line
-    ;
-pop3_client =
-    ("USER "i [^ ]+ [\r\n]+
-     (("PASS "i [^ \r\n]+ [\r\n]+) | ("QUIT"i [\r\n]+))) |
-    ("APOP "i [^ \r\n]+ " " xdigit{16} [\r\n]+)
-    ;
-pop = (pop3_server | pop3_client) @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 75;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-postgresql_ssl_connection =
-    0x00 0x00 0x00 0x08			# message length
-    0x04 0xd2				# magic number (1234)
-    0x16 0x2f				# magic number (5679)
-    ;
-postgresql = postgresql_ssl_connection @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 76;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-quake1_conn_request = 
-    0x80 0x00			# control message type
-    0x00 0x0c			# length of message (12)
-    0x01			# connection request type
-    "QUAKE"i 0x00		# game name string
-    0x03			# protocol version
-    ;
-quake1 = quake1_conn_request @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 79;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-quake3_commands =
-    ( "getinfo"i | "getchallenge"i | "getchallengeresponse"i | "getstatus"i |
-      "getmotd"i | "getmotdresponse"i | "getservers"i | "getipauthorize"i |
-      "getkeyauthorize"i | "info"i | "rcon"i | "connect"i | "connectresponse"i );
-quake3 = 0xff{4} quake3_commands @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 80;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-radius = 
-    (1..5 | 11..13 | 255)	# Code (XXX - 255 is "Reserved" -- needed??)
-    any				# Identifier
-    any{2}			# Length (20 <= length <= 4096)
-    any{16}			# Authenticator
+icy_server_response = 
+  "ICY"i " "		# Version
+  digit{3} " "  	# Status code
+  [^\r\n]+ [\r\n]+	# Reason phrase
+  ;
+icy = 
+    icy_server_response
     @{ 
     a->match_count ++;
     if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 81;
+        a->application = 38;
         a->confidence = APPID_CONFIDENCE_NORMAL;
         a->match_payload = a->payload_offset + (p - payload);
         if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
@@ -1328,40 +607,144 @@ radius =
  } any*
     ;
 
-itot_header =
-    0x03			# Protocol version number
-    0x00			# Reserved
-    any any			# Packet length
-    ;
-rdp_cr = 
-    any				# header length
-    0xe0			# connection request
-    any any			# dst ref
-    any any			# src ref
-    any				# class
-    "Cookie: mstshash="i	# auth cookie
-    ;
-rdp_cc = 
-    any				# header length
-    0xd0			# connection confirm
-    any any			# dst ref
-    any any			# src ref
-    any				# class
-    ;
-rdp_dt = 
-    any				# header length
-    0xf0			# data transfer
-    0x80			# eot
-    ;
-rdp =
-    itot_header 
-    (rdp_cr |			# connection request
-     rdp_cc |			# connection confirm
-     rdp_dt)			# data transfer
-    @{ 
+msn_notification_cnxn =
+    "VER "			# VER command
+    digit+			# Transaction ID
+    ( " " alnum+ )*		# Any number of protocol versions
+    ( " MSNP" digit+ )		# Must have at least one MSN protocol listed
+    ( " " alnum+ )*		# Any number of protocol versions
+    0xd 0xa;			# \r\n
+msn_switchboard_cnxn =
+    ( "USR " | "ANS " )		# USR (request) or ANS (answer) command
+    digit+			# Transaction ID
+    " "				# Space
+    [^ \r\n]+			# Account name
+    " "				# Space
+    [^ \r\n]+			# Authentication string
+    ( " " [^ \r\n]+ )?		# Switchboard session ID (for "answer" only)
+    0xd 0xa;			# \r\n
+msn_webcam =
+    "recipientid="i alnum+	# Recipient ID
+    "&sessionid="i alnum+	# Session ID
+    0xd 0xa 0xd 0xa;		# \r\n\r\n
+msn =
+    ( msn_notification_cnxn | msn_switchboard_cnxn | msn_webcam ) @{ 
     a->match_count ++;
     if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 82;
+        a->application = 55;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+rtsp = "RTSP/1.0 " digit{3} [^\r\n]* 0xd 0xa @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 90;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+edonkey_tcp =
+    (0xe3 | 0xc5 | 0xd4)			# Protocol
+    (((any - 0) 0) | (any (any - 0))) 0 0	# Packet data length
+    0x01					# Hello server
+    ;
+edonkey = edonkey_tcp @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 26;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+groupwise_login = 
+    "POST /login" [^ ]+ " HTTP/1." digit "\r\n"		# HTTP/1.x POST
+    (((any - [\r])+ "\r\n")*) :>> 			# additional HTTP headers
+    ( "\r\n\r\n"					# end of HTTP header
+      "&"? "tag=NM_A_SZ_USERID"i  )			# POST data
+    ;
+groupwise = groupwise_login @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 33;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+vnc = 
+    "RFB " digit digit digit "." digit digit digit 0xa @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 113;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+svn_server_response = "( success ( 1 2 ("i;
+svn = svn_server_response @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 105;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+xmpp_new_session = xml_text_decl? xml_ws? "<stream:stream";
+xmpp = xmpp_new_session @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 117;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+ldap =
+  0x30 any+	        # SEQUENCE
+  0x02 			# INTEGER: Message ID (0 .. 2^31-1)
+    ((1 any{1}) |       #   Length and contents
+     (2 any{2}) |
+     (3 any{3}) |
+     (4 any{4}))
+  (			# CHOICE
+   0x60 | 		# BindRequest (0)
+   0x61 |	        # BindResponse (1)
+   0x62 | 		# UnbindReques (2)
+   0x63 | 		# SearchRequest (3)
+   0x64 | 		# SearchResultEntry (4)
+   0x65 | 		# SearchResutlDone (5)
+   0x71 | 		# SearchResultReference (17) (LDAP v3)
+   0x66 | 		# ModifyRequest (6)
+   0x67 | 		# ModifyResponse (7)
+   0x68 | 		# AddRequest (8)
+   0x69 | 		# AddResponse (9)
+   0x6a | 		# DelRequest (10)
+   0x6b | 		# DelResponse (11)
+   0x6c | 		# ModifyDNRequest (12)
+   0x6d | 		# ModifyDNResponse (13)
+   0x6e | 		# CompareRequest (14)
+   0x6f | 		# CompareResponse (15)
+   0x70 | 		# AbandonRequest (16)
+   0x77 | 		# ExtendedRequest (23) (LDAP v3)
+   0x78 		# ExtendedResponse (24) (LDAP v3)
+  ) # All choices are constructed applications (bits 6 and 7 set)
+  @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 47;
         a->confidence = APPID_CONFIDENCE_NORMAL;
         a->match_payload = a->payload_offset + (p - payload);
         if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
@@ -1369,7 +752,23 @@ rdp =
  } any*
   ;
 
-rdt = empty;
+http_response_status_line =
+    "HTTP/" digit+ "." digit+ " "	# Version
+    digit{3}				# Status code 
+    [^\r\n]+? [\r\n]+			# Reason phrase
+    ;
+http = 
+    http_response_status_line
+    @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 35;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*
+    ;
 
 ripv1_entry = 
     0 2				# address family (2=AF_INET)
@@ -1409,78 +808,26 @@ rip = ( ripv1_message | ripv2_message ) @{
     }
  } any*;
 
-rlogin_server_prompt =
-    0x00
-    "Password: "
+zephyr_header = "ZEPH" digit "." digit;
+zephyr = zephyr_header @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 119;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+cups_browsing = 
+    xdigit{1,5} " "		# printer type
+    ( "3" | "4" | "5" ) " "	# printer state (idle, processing, stopped)
+    "ipp://"
     ;
-rlogin = rlogin_server_prompt @{ 
+cups = cups_browsing @{ 
     a->match_count ++;
     if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 86;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-rsync = "@RSYNCD: " @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 88;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-rtp = empty;
-
-rtsp = "RTSP/1.0 " digit{3} [^\r\n]* 0xd 0xa @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 90;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-sip_request =
-    ("INVITE" |
-     "CANCEL" |
-     "MESSAGE" |
-     "REGISTER" )
-    " "					# Space
-    "sip:"i				# Request-URI scheme (XXX - add others?)
-    [^\r\n]*				# Request-URI (escaped spaces allowed)
-    " "					# Space
-    "SIP/2.0"i				# SIP-Version
-    0xd 0xa;				# \r\n
-sip = sip_request @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 93;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-slp_msg = 
-    0x02				# version
-    1..11				# function id
-    any any any				# message length
-    (0x20 | 0x40 | 0x80) 0x00		# flags
-    any any any				# extension offset
-    any any				# xid
-    any any				# language tag length
-    any* :>>
-    "service:"i
-    ;
-slp = slp_msg @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 95;
+        a->application = 20;
         a->confidence = APPID_CONFIDENCE_NORMAL;
         a->match_payload = a->payload_offset + (p - payload);
         if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
@@ -1528,45 +875,243 @@ smb =
  } any*
     ;
 
-smtp_server_ready =
-    ("220") |			# 220 ("Service ready")
-    ("554")			# 554 ("Trans. failed")
-    [^\r\n]* [\r\n]+;		# Anything followed by CRLF
-smtp_client_helo =
-    (/HELO/i |			# Must be issued before any mail transaction
-     /EHLO/i)
-    [^\r\n]* [\r\n]+;		# Anything followed by newline
-smtp = (smtp_server_ready | smtp_client_helo) @{ 
+syslog = 
+    "<" 
+    ( (digit) |			   # 0-9
+      (digit digit) |		   # 10-99
+      ("1" ("0" .. "8") digit) |   # 100-189
+      ("1" "9" ("0" .. "3")) )	   # 190-193
+    ">"
+    @{ 
     a->match_count ++;
     if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 97;
+        a->application = 106;
         a->confidence = APPID_CONFIDENCE_NORMAL;
         a->match_payload = a->payload_offset + (p - payload);
         if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
     }
  } any*;
 
-snmp1_or_2c =
-  0x30 any+		# (SEQUENCE)
-  0x02 1 (0 | 1)	# Version: 1 (0) or 2c (1) (INTEGER)
-  0x04 any # any*	# Community string (OCTET STRING)
-  # any*  		# Data
-  ;
-snmp3 =
-  0x30 any+		# (SEQUENCE)
-  0x02 1 3		# Version: 3 (INTEGER)
-  0x30 any # any*	# Message Global Header (SEQUENCE)
-  # any*		# Data
-  ;
-snmp = (snmp1_or_2c | snmp3) @{ 
+gnutella_control = "GNUTELLA CONNECT";
+gnutella_data = ("GET /uri-res/N2R?urn:sha1:" | "GET /get/" digit{1,10} "/");
+gnutella2_udp = "GND" 0x00..0x03;
+gnutella = ( gnutella_control | gnutella_data | gnutella2_udp ) @{ 
     a->match_count ++;
     if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 98;
+        a->application = 32;
         a->confidence = APPID_CONFIDENCE_NORMAL;
         a->match_payload = a->payload_offset + (p - payload);
         if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
     }
- } any* ;
+ } any*;
+
+quake1_conn_request = 
+    0x80 0x00			# control message type
+    0x00 0x0c			# length of message (12)
+    0x01			# connection request type
+    "QUAKE"i 0x00		# game name string
+    0x03			# protocol version
+    ;
+quake1 = quake1_conn_request @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 79;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+rsync = "@RSYNCD: " @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 88;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+postgresql_ssl_connection =
+    0x00 0x00 0x00 0x08			# message length
+    0x04 0xd2				# magic number (1234)
+    0x16 0x2f				# magic number (5679)
+    ;
+postgresql = postgresql_ssl_connection @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 76;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+pop3_server = 
+    ("+OK "i | "-ERR "i)	# +OK or -ERR
+    [^\r\n]+ [\r\n]+		# Rest of line
+    ;
+pop3_client =
+    ("USER "i [^ ]+ [\r\n]+
+     (("PASS "i [^ \r\n]+ [\r\n]+) | ("QUIT"i [\r\n]+))) |
+    ("APOP "i [^ \r\n]+ " " xdigit{16} [\r\n]+)
+    ;
+pop = (pop3_server | pop3_client) @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 75;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+mgcp_eol		= ( "\r\n" | "\n" );
+mgcp_wsp		= ( " " | "\t" );
+mgcp_verb		= ( "EPCF"i | "CRCX"i | "MDCX"i | "DLCX"i | "RQNT"i |
+			    "NTFY"i | "AUEP"i | "AUCX"i | "RSIP"i );
+mgcp_version		= ( "MGCP 1.0" );
+mgcp_transid		= digit{1,9};
+mgcp_command		= mgcp_verb mgcp_wsp{1,} mgcp_transid mgcp_wsp{1,}
+			  any* :>> mgcp_version;
+mgcp			= mgcp_command @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 53;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+fasttrack_transfer =
+    ("GET /.hash=") |
+    ("GET /" any+ 0xd 0xa "X-Kazaa") |
+    ("GIVE ")
+    ;
+fasttrack_udp_ping =
+    0x27					# Message type
+    any{4}					# Minimum encryption type
+    0x80					# Unknown
+    "KaZaA" 0					# Zero terminated network name
+    ;
+fasttrack_udp_pong =
+    0x28					# Message type
+    any{4}					# Minimum encryption type
+    0 any{5}					# Unknown
+    "KaZaA" 0					# Zero terminated network name
+    ;
+fasttrack = (fasttrack_udp_ping | fasttrack_udp_pong | fasttrack_transfer)
+    @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 28;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+rtp = empty;
+
+megaco_eol		= ("\r\n" | "\n");
+megaco_wsp		= (" " | "\t");
+megaco_lwsp		= (megaco_wsp | megaco_eol)*;
+megaco_equal		= (megaco_lwsp "=" megaco_lwsp);
+megaco_sep		= ((megaco_wsp | megaco_eol) megaco_lwsp);
+megaco_authtoken	= ("Authentication"i | "AU"i);
+megaco_megacoptoken	= ("MEGACO"i | "!");
+megaco_seqnum		= ("0x" xdigit{8});
+megaco_securityindex	= ("0x" xdigit{8});
+megaco_authdata		= ("0x" xdigit{24,64});
+megaco_authheader	= megaco_authtoken megaco_equal megaco_securityindex ":" megaco_seqnum ":" megaco_authdata;
+megaco_header		= megaco_megacoptoken "/1" megaco_sep;
+megaco_message		= (megaco_authheader megaco_sep)? megaco_header;
+megaco			= megaco_message @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 52;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+ntp2 = 
+    (0x00 | 0x01 | 0x02 | 0x03 | 0x04 |  # leap year 0
+     0x40 | 0x41 | 0x42 | 0x43 | 0x44 |  # leap year 1
+     0x80 | 0x81 | 0x02 | 0x83 | 0x84 |  # leap year 2
+     0xc0 | 0xc1 | 0xc2 | 0xc3 | 0xc4)   # leap year 3
+    (0 .. 4)			         # status
+    #any{46}			         # other
+    ;
+ntp4 = 
+    (0x19 | 0x1a | 0x1b | 0x1c | 0x1d | # LY 0, Version 3
+     0x21 | 0x22 | 0x23 | 0x24 | 0x25 | # LY 0, Version 4
+     0x59 | 0x5a | 0x5b | 0x5c | 0x5d | # LY 1, Version 3
+     0x61 | 0x62 | 0x63 | 0x64 | 0x65 | # LY 1, Version 4
+     0x99 | 0x9a | 0x9b | 0x9c | 0x9d | # LY 2, Version 3
+     0xa1 | 0xa2 | 0xa3 | 0xa4 | 0xa5 | # LY 2, Version 3
+     0xd9 | 0xda | 0xdb | 0xdc | 0xdd | # LY 3, Version 3
+     0xe1 | 0xe2 | 0xe3 | 0xe4 | 0xe5)  # LY 3, Version 3
+    (0 .. 15)			        # stratum
+    #any{46}				# other
+    #(any{20})?				# optional
+    ;
+ntp = ntp2 | ntp4 @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 64;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+quake3_commands =
+    ( "getinfo"i | "getchallenge"i | "getchallengeresponse"i | "getstatus"i |
+      "getmotd"i | "getmotdresponse"i | "getservers"i | "getipauthorize"i |
+      "getkeyauthorize"i | "info"i | "rcon"i | "connect"i | "connectresponse"i );
+quake3 = 0xff{4} quake3_commands @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 80;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+
+gg_welcome = 
+    0x01 0x00 0x00 0x00		# welcome message type
+    0x04 0x00 0x00 0x00		# welcome message length
+    any any any any		# server seed
+    ;
+gadugadu = gg_welcome @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 30;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+ares_client_connect = 
+    0x03 0x00			# length of client syn
+    0x5a			# client syn command
+    0x06 0x06 0x05		# protocol version
+    ;
+ares = ares_client_connect @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 13;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
 
 soap_post = 
    "POST " [^ ]+ " HTTP/1.1\r\n"	# HTTP/1.1 POST
@@ -1589,15 +1134,36 @@ soap = ( soap_post | soap_response ) @{
     }
  } any*;
 
-ssdp = ( "M-SEARCH" | "NOTIFY" ) " * HTTP/1.1\r\n" @{ 
+ventrilo_connect =
+    0x00 any			# packet length (assume < 256)
+    any				# unknown
+    0x56 0x24 0xcf		# magic cookie
+    ;
+ventrilo = ventrilo_connect @{ 
     a->match_count ++;
     if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 101;
+        a->application = 112;
         a->confidence = APPID_CONFIDENCE_NORMAL;
         a->match_payload = a->payload_offset + (p - payload);
         if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
     }
  } any*;
+
+ipp = 
+   "POST " [^ ]+ " HTTP/1.1\r\n"     # All IPP is POST
+   (((any - [\r])+ "\r\n")*) :>>     # Header lines
+   ("Content-Type:"i [ \t]* 	     # Content-Type: application/ipp
+    "application/ipp\r\n"i)
+   @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 41;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*
+   ;
 
 ssh = "SSH-" digit+ "." digit+ @{ 
     a->match_count ++;
@@ -1609,68 +1175,297 @@ ssh = "SSH-" digit+ "." digit+ @{
     }
  } any* ;
 
-stun_attr = 
-    0x00 0x03				# change-request attr type
-    0x00 0x04				# attr length
-    0x00 0x00 0x00 (0x04 | 0x02 | 0x00)	# change-ip/change-port
-    ;
-stun_request = 
-    0x00 0x01				# binding request
-    0x00 0x08				# request length
-    any{16}				# 128-bit transaction id
-    stun_attr
-    ;
-stun = stun_request @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 104;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-svn_server_response = "( success ( 1 2 ("i;
-svn = svn_server_response @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 105;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-syslog = 
-    "<" 
-    ( (digit) |			   # 0-9
-      (digit digit) |		   # 10-99
-      ("1" ("0" .. "8") digit) |   # 100-189
-      ("1" "9" ("0" .. "3")) )	   # 190-193
-    ">"
+kerberos_udp = 
+    (kerberos_msg_tag0 | kerberos_msg_tag1 | kerberos_ticket)
     @{ 
     a->match_count ++;
     if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 106;
+        a->application = 45;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*
+    ;
+
+tpkt_header =
+    0x03		# TPKT version 3
+    0x00		# Reserved field
+    any any		# TPKT packet length
+    ;
+h323_call_setup = 
+    0x08				# Protocol discriminator (Q.931)
+    (0x00) |				# Call reference value
+    (0x01 any{1}) |			# Varies between 0-15 bytes
+    (0x02 any{2}) |			# XXX refactor using Semantic Conditions
+    (0x03 any{3}) |
+    (0x04 any{4}) |
+    (0x05 any{5}) |
+    (0x06 any{6}) |
+    (0x07 any{7}) |
+    (0x08 any{8}) |
+    (0x09 any{9}) |
+    (0x0a any{10}) |
+    (0x0b any{11}) |
+    (0x0c any{12}) |
+    (0x0d any{13}) |
+    (0x0e any{14}) |
+    (0x0f any{15}) 
+    (0x05 | 0x02)			# Message type (Setup, Call Proceding)
+    ;
+h323 = tpkt_header h323_call_setup @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 34;
         a->confidence = APPID_CONFIDENCE_NORMAL;
         a->match_payload = a->payload_offset + (p - payload);
         if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
     }
  } any*;
 
-tacacs_plus = 
-    0xc0				# Version (major = 0xc, minor = 0x0)
-    (0x01 | 0x02 | 0x03)		# Type
-    1					# Sequence number (first MUST be 1)
-    (0x00 | 0x01 | 0x04 | 0x05)		# Flags
-    any{4}				# Session ID (randomly chosen)
-    0 0					# Length (assume 0 < length < 65536)
-    (((any - 0) 0) | (any (any - 0)))
-    ;
-tacacs = tacacs_plus @{ 
+smtp_server_ready =
+    ("220") |			# 220 ("Service ready")
+    ("554")			# 554 ("Trans. failed")
+    [^\r\n]* [\r\n]+;		# Anything followed by CRLF
+smtp_client_helo =
+    (/HELO/i |			# Must be issued before any mail transaction
+     /EHLO/i)
+    [^\r\n]* [\r\n]+;		# Anything followed by newline
+smtp = (smtp_server_ready | smtp_client_helo) @{ 
     a->match_count ++;
     if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 107;
+        a->application = 97;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+x11_client_request_le = 
+    0x6c			# byte order
+    0x00			# unused
+    0x0b 0x00			# protocol-major-version (11)
+    0x00 0x00			# protocol-minor-version (0)
+    any any			# authorization-protocol-name-length
+    any any			# authorization-protocol-data-length
+    0x00 0x00			# unused
+    ;
+x11_client_request_be =
+    0x42			# byte order
+    0x00			# unused
+    0x00 0x0b			# protocol-major-version (11)
+    0x00 0x00			# protocol-minor-version (0)
+    any any			# authorization-protocol-name-length
+    any any			# authorization-protocol-data-length
+    0x00 0x00			# unused
+    ;
+x11 = ( x11_client_request_le | x11_client_request_be ) @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 114;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+imap_text = [^\r\n\0] ;
+imap_tag = [^ +(){%*"'\\\r\n\0]+; # Also excludes "CTL"?
+server_greeting =
+    "* "
+    ("OK"i | "PREAUTH"i | "BYE"i)
+    imap_text* "\r\n"
+    ;
+client_first_command =
+   imap_tag " "
+   (("NOOP"i |		# IMAP command without arguments
+     "CAPABILITY"i |
+     "STARTTLS"i) |
+    ("LOGIN"i |		# IMAP command with arguments
+     "AUTHENTICATE"i |
+     "LOGOUT"i |
+     "SELECT"i |
+     "EXAMINE"i)
+     " " imap_text*)
+   "\r\n"
+   ;
+imap =
+    server_greeting
+    @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 40;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*
+    ;
+
+cvs_client_connect = "BEGIN " ( "AUTH" | "VERIFICATION" | "GSSAPI" ) " REQUEST\n";
+cvs_server_response = ( "I LOVE YOU\n" | "I HATE YOU\n" );
+cvs = ( cvs_client_connect | cvs_server_response ) @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 21;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+lpd_space = " \t\v\f"+ ;     # space, tab, vertical tab, form-feed
+lpd_word = (any - [\0\n])+;  # RFC says ASCII, but be less strict
+lpd_receive_job_subcommand = 
+  (0x01 "\n") |			    # Abort
+  (0x02				    # Receive control file
+    digit+ lpd_space		    #   data length
+    "cfA" digit{3} lpd_word "\n") | #   file name
+   #any*			    #   data (see Section 6)
+  (0x03 			    # Receive data file
+    digit+ lpd_space		    #   data length
+    "dfA" digit{3} lpd_word "\n")   #   file name
+   #any*			    #   data (arbitrary)
+  ;
+lpd_request = 
+  (0x01 lpd_word "\n") |	    # Print any waiting jobs
+  (0x02 lpd_word "\n"  	            # Receive a printer job
+    lpd_receive_job_subcommand) |
+  (0x03 lpd_word           	    # Send queue state (short)
+    (lpd_space lpd_word)? "\n") |   #   user names, job numbers
+  (0x04 lpd_word	    	    # Send queue state (long)
+    (lpd_space lpd_word)? "\n") |   #   user names, job numbers
+  (0x05 lpd_word lpd_space	    # Remove jobs
+    lpd_word lpd_space		    #   agent
+    lpd_word "\n")		    #   name
+  ; 
+lpd = 
+  lpd_request
+  @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 49;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+peer_connection =
+    0x13
+    "BitTorrent protocol"
+    ;
+tracker_connection = 
+    "GET /announce?"  
+    ( "info_hash" |
+      "peer_id" |
+      "ip" |
+      "port" |
+      "uploaded" |
+      "downloaded" |
+      "left" |
+      "event" )
+    "=";
+bittorrent = ( peer_connection | tracker_connection ) @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 15;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+slp_msg = 
+    0x02				# version
+    1..11				# function id
+    any any any				# message length
+    (0x20 | 0x40 | 0x80) 0x00		# flags
+    any any any				# extension offset
+    any any				# xid
+    any any				# language tag length
+    any* :>>
+    "service:"i
+    ;
+slp = slp_msg @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 95;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+itot_header =
+    0x03			# Protocol version number
+    0x00			# Reserved
+    any any			# Packet length
+    ;
+rdp_cr = 
+    any				# header length
+    0xe0			# connection request
+    any any			# dst ref
+    any any			# src ref
+    any				# class
+    "Cookie: mstshash="i	# auth cookie
+    ;
+rdp_cc = 
+    any				# header length
+    0xd0			# connection confirm
+    any any			# dst ref
+    any any			# src ref
+    any				# class
+    ;
+rdp_dt = 
+    any				# header length
+    0xf0			# data transfer
+    0x80			# eot
+    ;
+rdp =
+    itot_header 
+    (rdp_cr |			# connection request
+     rdp_cc |			# connection confirm
+     rdp_dt)			# data transfer
+    @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 82;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*
+  ;
+
+bgp4 =
+    0xff{16}				# Marker (must be all 1's for an OPEN message)
+    ((0x00 0x1d..0xff) |		# Length (between 29 and 4096)
+    (0x01..0x10 any))
+    1					# Type (1 = OPEN message)
+    4					# Version = 4
+    any{9}				# My AS, HoldTime, BGP ID, optional params len
+    @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 14;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+bgp = bgp4;
+
+nmdc_commands = 
+    ( "$Lock "i |
+      "$Key "i |
+      "$ValidateNick "i |
+      "$HubName "i |
+      "$ConnectToMe "i );
+nmdc = nmdc_commands @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 62;
         a->confidence = APPID_CONFIDENCE_NORMAL;
         a->match_payload = a->payload_offset + (p - payload);
         if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
@@ -1780,10 +1575,76 @@ tds =
  } any*
     ;
 
-teamspeak = 0xf4 0xbe 0x03 @{ 
+daap = "GET " "daap://"i @{ 
     a->match_count ++;
     if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 109;
+        a->application = 22;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+citrix_dsniff =
+    0x7f 0x7f 0x49 0x43
+    0x41 0x00
+    ;
+citrix = citrix_dsniff @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 16;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+stun_attr = 
+    0x00 0x03				# change-request attr type
+    0x00 0x04				# attr length
+    0x00 0x00 0x00 (0x04 | 0x02 | 0x00)	# change-ip/change-port
+    ;
+stun_request = 
+    0x00 0x01				# binding request
+    0x00 0x08				# request length
+    any{16}				# 128-bit transaction id
+    stun_attr
+    ;
+stun = stun_request @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 104;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+tftp =
+    0 ( 1 | 2 ) (any - 0)+ 0 ( "netascii"i | "octet"i | "mail"i ) 0 @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 111;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+
+rdt = empty;
+
+corba_message =
+    "GIOP"			# magic cookie
+    0x01 0x00			# version (major, minor)
+    (0x00 | 0x01)		# byte order (be, le)
+    (0x00 | 0x01)		# message type (request, reply)
+    any{4}			# message size
+    ;
+corba = corba_message @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 19;
         a->confidence = APPID_CONFIDENCE_NORMAL;
         a->match_payload = a->payload_offset + (p - payload);
         if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
@@ -1802,85 +1663,10 @@ telnet =
     }
  } any*;
 
-tftp =
-    0 ( 1 | 2 ) (any - 0)+ 0 ( "netascii"i | "octet"i | "mail"i ) 0 @{ 
+ftp = "220" [^\r\n]* [\r\n]+ @{ 
     a->match_count ++;
     if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 111;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-ventrilo_connect =
-    0x00 any			# packet length (assume < 256)
-    any				# unknown
-    0x56 0x24 0xcf		# magic cookie
-    ;
-ventrilo = ventrilo_connect @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 112;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-vnc = 
-    "RFB " digit digit digit "." digit digit digit 0xa @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 113;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-x11_client_request_le = 
-    0x6c			# byte order
-    0x00			# unused
-    0x0b 0x00			# protocol-major-version (11)
-    0x00 0x00			# protocol-minor-version (0)
-    any any			# authorization-protocol-name-length
-    any any			# authorization-protocol-data-length
-    0x00 0x00			# unused
-    ;
-x11_client_request_be =
-    0x42			# byte order
-    0x00			# unused
-    0x00 0x0b			# protocol-major-version (11)
-    0x00 0x00			# protocol-minor-version (0)
-    any any			# authorization-protocol-name-length
-    any any			# authorization-protocol-data-length
-    0x00 0x00			# unused
-    ;
-x11 = ( x11_client_request_le | x11_client_request_be ) @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 114;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-xml_ws = (' ' | '\r' | '\n' | '\t')+;
-xml_eq = xml_ws? '=' xml_ws?;
-xml_num = [0-9] '.' [0-9];
-xml_enc = [A-Za-z] ([A-Za-z0-9._] | '-')*;
-xml_enc_decl = xml_ws 'encoding' xml_eq ('"' xml_enc '"' | "'" xml_enc "'" );
-xml_version = xml_ws 'version' xml_eq ("'" xml_num "'" | '"' xml_num '"');
-xml_text_decl = '<?xml' xml_version xml_enc_decl? xml_ws? '?>';
-xml = "";
-
-xmpp_new_session = xml_text_decl? xml_ws? "<stream:stream";
-xmpp = xmpp_new_session @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 117;
+        a->application = 29;
         a->confidence = APPID_CONFIDENCE_NORMAL;
         a->match_payload = a->payload_offset + (p - payload);
         if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
@@ -1907,18 +1693,175 @@ yahoo = yahoo_messenger @{
     }
  } any*;
 
-zephyr_header = "ZEPH" digit "." digit;
-zephyr = zephyr_header @{ 
+tacacs_plus = 
+    0xc0				# Version (major = 0xc, minor = 0x0)
+    (0x01 | 0x02 | 0x03)		# Type
+    1					# Sequence number (first MUST be 1)
+    (0x00 | 0x01 | 0x04 | 0x05)		# Flags
+    any{4}				# Session ID (randomly chosen)
+    0 0					# Length (assume 0 < length < 65536)
+    (((any - 0) 0) | (any (any - 0)))
+    ;
+tacacs = tacacs_plus @{ 
     a->match_count ++;
     if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 119;
+        a->application = 107;
         a->confidence = APPID_CONFIDENCE_NORMAL;
         a->match_payload = a->payload_offset + (p - payload);
         if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
     }
  } any*;
 
-	apps = dcerpc | ares | bgp | bittorrent | citrix | corba | cups | cvs | daap | dhcp | edonkey | fasttrack | ftp | gadugadu | gnutella | gopher | groupwise | h323 | http | icy | imap | ipp | irc | kerberos_udp | ldap | lpd | mapi | megaco | mgcp | msn | mute | ncp | netflow | nmdc | nntp | ntp | openft | pop | postgresql | quake1 | quake3 | radius | rdp | rdt | rip | rlogin | rsync | rtp | rtsp | sip | slp | smb | smtp | snmp | soap | ssdp | ssh | stun | svn | syslog | tacacs | tds | teamspeak | telnet | tftp | ventrilo | vnc | x11 | xmpp | yahoo | zephyr ;
+snmp1_or_2c =
+  0x30 any+		# (SEQUENCE)
+  0x02 1 (0 | 1)	# Version: 1 (0) or 2c (1) (INTEGER)
+  0x04 any # any*	# Community string (OCTET STRING)
+  # any*  		# Data
+  ;
+snmp3 =
+  0x30 any+		# (SEQUENCE)
+  0x02 1 3		# Version: 3 (INTEGER)
+  0x30 any # any*	# Message Global Header (SEQUENCE)
+  # any*		# Data
+  ;
+snmp = (snmp1_or_2c | snmp3) @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 98;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any* ;
+
+openft_peer_handshake =
+    0x00 0x00 0x00 0x00			# unused
+    0x00 0x08				# length of handshake message
+    0x00 0x01				# handshake command
+    0x00 0x00				# major version (0)
+    0x00 0x02				# minor version (2)
+    0x00 any				# micro version
+    0x00 any				# revision
+    ;
+openft_filetransfer = 
+    "GET " [^ ]+ " HTTP/1.0\r\n"	# file transfer request
+    (((any - [\r])+ "\r\n")*) :>>	# additional headers
+    "Range: bytes="i			# range of byes to receive
+    ;
+openft = ( openft_peer_handshake | openft_filetransfer ) @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 65;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+sip_request =
+    ("INVITE" |
+     "CANCEL" |
+     "MESSAGE" |
+     "REGISTER" )
+    " "					# Space
+    "sip:"i				# Request-URI scheme (XXX - add others?)
+    [^\r\n]*				# Request-URI (escaped spaces allowed)
+    " "					# Space
+    "SIP/2.0"i				# SIP-Version
+    0xd 0xa;				# \r\n
+sip = sip_request @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 93;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+rlogin_server_prompt =
+    0x00
+    "Password: "
+    ;
+rlogin = rlogin_server_prompt @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 86;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+mapi = 
+    dcerpc_bind_pre_uuid
+    dcerpc_uuid_mapi		# MAPI UUID
+    @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 50;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*
+    ;
+
+tcp_xmit_magic = 0x44 0x6D 0x64 0x54;
+tcp_rcvd_magic = 0x74 0x4E 0x63 0x50;
+ncp_xmit_header = 
+    tcp_xmit_magic		# signature
+    any{4}			# length
+    0x00 0x00 0x00 0x01		# version
+    0x00 0x00 0x00 0x00		# reply buffer size
+    ;
+ncp_rcvd_header = 
+    tcp_rcvd_magic		# signature
+    any{4}			# length
+    ;
+ncp_service_request = 
+    ncp_xmit_header
+    0x11 0x11			# service connection request
+    0x00			# sequence number
+    0xff			# connection number
+    ;
+ncp_service_reply = 
+    ncp_rcvd_header
+    0x33 0x33			# service connection reply
+    0x00			# sequence number
+    any				# connection number
+    any				# task number
+    0x00			# reserved
+    0x00			# completion code (success)
+    ;
+ncp = ( ncp_service_request | ncp_service_reply ) @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 58;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+dhcp = 
+    # BOOTP header
+    (1 | 2)			# 1 or 2
+    any* :>>			# 235 arbitrary bytes
+    # DHCP
+    (0x63 0x82 0x53 0x63) @1
+    @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 24;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*
+    ;
+
+	apps = dcerpc | irc | ssdp | mute | teamspeak | netflow | nntp | icy | msn | rtsp | edonkey | groupwise | vnc | svn | xmpp | ldap | http | rip | zephyr | cups | smb | syslog | gnutella | quake1 | rsync | postgresql | pop | mgcp | fasttrack | rtp | megaco | ntp | quake3 | gadugadu | ares | soap | ventrilo | ipp | ssh | kerberos_udp | h323 | smtp | x11 | imap | cvs | lpd | bittorrent | slp | rdp | bgp | nmdc | tds | daap | citrix | stun | tftp | rdt | corba | telnet | ftp | yahoo | tacacs | snmp | openft | sip | rlogin | mapi | ncp | dhcp ;
 	main := apps;
 }%%
 
@@ -2136,21 +2079,6 @@ git = git_header @{
     }
  } any*;
 
-kerberos_tcp = 
-    ((any{4} kerberos_msg_tag0) |
-     (any{4} kerberos_msg_tag1) |
-     (any{4} kerberos_ticket))
-    @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 46;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*
-    ;
-
 netbios_ns =
     any{2}		               # ID
     ((0x00 | 0x01 | (0x28 .. 0x41)) |  # R 0, Opcode, AA,TC,RD
@@ -2173,6 +2101,21 @@ netbios_ns =
     }
  } any*
     ; 
+
+kerberos_tcp = 
+    ((any{4} kerberos_msg_tag0) |
+     (any{4} kerberos_msg_tag1) |
+     (any{4} kerberos_ticket))
+    @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 46;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*
+    ;
 
 sametime_message_type = 
     ( 0x00 0x00 |		# handshake
@@ -2199,7 +2142,7 @@ sametime = sametime_handshake @{
     }
  } any*;
 
-	apps = git | kerberos_tcp | netbios_ns | sametime ;
+	apps = git | netbios_ns | kerberos_tcp | sametime ;
 	main := apps;
 }%%
 
@@ -2343,91 +2286,7 @@ appid_any16_execute(
 	alphtype unsigned char;
 
 	# Ragel
-        oscar_proxy_ft = 
-    any any				# length
-    0x04 0x4a				# packet version (AIM_RV_PROXY_PACKETVER_DFLT)
-    0x00 (0x02 | 0x03 | 0x04)		# cmd type (SEND | RECV | ACK))	
-    0x00 0x00 0x00 0x00			# unknown (AIM_RV_PROXY_UNKNOWNA_DFLT)
-    ((0x00 0x00) | (0x02 0x20))		# flags (client, server)
-    ;
-oscar_direct_ft =
-    "OFT2"i				# Oscar File Transfer token
-    any any				# OFT message length
-    0x01 0x01				# OFT message type (PEER_TYPE_PROMPT)
-    ;
-oscar_direct_im =
-    "ODC2"i				# Oscar Direct Connect token
-    any any				# ODC message length
-    0x00 0x05				# ODC message type (PEER_TYPE_DIRECTIM_ESTABLISHED)
-    ;
-oscar_new_connection =
-    0x2a		# Command Start
-    0x01		# Channel ID: New Connection
-    any any		# Sequence number
-    ((0x00 0x04 any any any any) | # First login: length 4
-     (0x01 0x08 any any any any    # Second login: length 264
-      0x00 0x06                    # Value ID: Auth cookie (6)
-      0x01 0x00			   # Length: 256
-      any{256}))
-    ;
-toc_new_connection = "FLAPON\r\n\r\n"i;
-aim = ( oscar_proxy_ft | 
-        oscar_new_connection | 
-	oscar_direct_ft |
-	oscar_direct_im |
-        toc_new_connection ) @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 12;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-iax_version_ie = 
-    0x0b				# version ie type
-    0x02				# ie length
-    0x00 0x02				# protocol version 
-    ;
-iax_new = 
-    (0x80..0xff) any			# 1 bit - full frame bit
-					# 15 bits - src call number
-    0x00 0x00 				# 1 bit - retransmission bit
-					# 15 bits - dst call number
-    0x00 0x00 any any			# timestamp (assume < 65536)
-    0x00				# out sequence number
-    0x00				# in sequence num
-    0x06				# frametype - IAX (0x06)
-    0x01				# subclass - NEW (0x01)
-    iax_version_ie
-    ;
-iax = iax_new @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 36;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-mysql_server_greeting =
-    any 0 0    	    # Length (assume < 256 bytes)
-    0		    # Packet number
-    10		    # Protocol
-    ascii+ 0;	    # Version string
-mysql = mysql_server_greeting @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 57;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-opennap_email_part = /[0-9A-Za-z\-\.\_]/;
+        opennap_email_part = /[0-9A-Za-z\-\.\_]/;
 opennap_email = opennap_email_part+ "@" opennap_email_part+;
 opennap_login =
     any 0x00			# message length (assume < 256)
@@ -2465,6 +2324,65 @@ opennap = ( opennap_login |
     }
  } any*;
 
+iax_version_ie = 
+    0x0b				# version ie type
+    0x02				# ie length
+    0x00 0x02				# protocol version 
+    ;
+iax_new = 
+    (0x80..0xff) any			# 1 bit - full frame bit
+					# 15 bits - src call number
+    0x00 0x00 				# 1 bit - retransmission bit
+					# 15 bits - dst call number
+    0x00 0x00 any any			# timestamp (assume < 65536)
+    0x00				# out sequence number
+    0x00				# in sequence num
+    0x06				# frametype - IAX (0x06)
+    0x01				# subclass - NEW (0x01)
+    iax_version_ie
+    ;
+iax = iax_new @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 36;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+sccp_register =
+    any 0x00 0x00 0x00			# packet length (assume < 256)
+    0x00 0x00 0x00 0x00			# reserved
+    ( 0x01 | 0x81 ) 0x00 0x00 0x00	# type (register, registerack)
+    ;
+sccp = sccp_register @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 92;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+ssl_20 = 
+    any any		    # Length
+    (1 | 4)		    # Message type: Client or Server Hello
+    ((2 0) | (3 0) | (3 1));# Version: SSL 2.0 or 3.0, TLS 1.0
+tls_10 =
+    22		    	    # Content type: Handshake (22)
+    3 (0 | 1);	    	    # Version: {3, 1} (TLS 1.0)
+ssl = (ssl_20 | tls_10) @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 103;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
 tns_connect =
     any any			# packet length
     0x00 0x00			# packet checksum
@@ -2484,6 +2402,69 @@ oracle = tns_connect @{
     a->match_count ++;
     if(a->confidence < APPID_CONFIDENCE_NORMAL) {
         a->application = 67;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+slsk_response = 
+    any any 0x00 0x00			# message length (assume < 2^16)
+    0x01 0x00 0x00 0x00			# login reply message type
+    0x01				# login success flag
+    any any 0x00 0x00			# string length (assume < 2^16)
+    ;
+slsk_login =
+    any 0x00 0x00 0x00			# message length (assume < 256)
+    0x01 0x00 0x00 0x00			# login message type
+    any 0x00				# username length (assume < 256)
+    ;
+soulseek = ( slsk_login | slsk_response ) @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 100;
+        a->confidence = APPID_CONFIDENCE_NORMAL;
+        a->match_payload = a->payload_offset + (p - payload);
+        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
+    }
+ } any*;
+
+oscar_proxy_ft = 
+    any any				# length
+    0x04 0x4a				# packet version (AIM_RV_PROXY_PACKETVER_DFLT)
+    0x00 (0x02 | 0x03 | 0x04)		# cmd type (SEND | RECV | ACK))	
+    0x00 0x00 0x00 0x00			# unknown (AIM_RV_PROXY_UNKNOWNA_DFLT)
+    ((0x00 0x00) | (0x02 0x20))		# flags (client, server)
+    ;
+oscar_direct_ft =
+    "OFT2"i				# Oscar File Transfer token
+    any any				# OFT message length
+    0x01 0x01				# OFT message type (PEER_TYPE_PROMPT)
+    ;
+oscar_direct_im =
+    "ODC2"i				# Oscar Direct Connect token
+    any any				# ODC message length
+    0x00 0x05				# ODC message type (PEER_TYPE_DIRECTIM_ESTABLISHED)
+    ;
+oscar_new_connection =
+    0x2a		# Command Start
+    0x01		# Channel ID: New Connection
+    any any		# Sequence number
+    ((0x00 0x04 any any any any) | # First login: length 4
+     (0x01 0x08 any any any any    # Second login: length 264
+      0x00 0x06                    # Value ID: Auth cookie (6)
+      0x01 0x00			   # Length: 256
+      any{256}))
+    ;
+toc_new_connection = "FLAPON\r\n\r\n"i;
+aim = ( oscar_proxy_ft | 
+        oscar_new_connection | 
+	oscar_direct_ft |
+	oscar_direct_im |
+        toc_new_connection ) @{ 
+    a->match_count ++;
+    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
+        a->application = 12;
         a->confidence = APPID_CONFIDENCE_NORMAL;
         a->match_payload = a->payload_offset + (p - payload);
         if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
@@ -2536,60 +2517,22 @@ qq = qq_connection @{
     }
  } any*;
 
-sccp_register =
-    any 0x00 0x00 0x00			# packet length (assume < 256)
-    0x00 0x00 0x00 0x00			# reserved
-    ( 0x01 | 0x81 ) 0x00 0x00 0x00	# type (register, registerack)
-    ;
-sccp = sccp_register @{ 
+mysql_server_greeting =
+    any 0 0    	    # Length (assume < 256 bytes)
+    0		    # Packet number
+    10		    # Protocol
+    ascii+ 0;	    # Version string
+mysql = mysql_server_greeting @{ 
     a->match_count ++;
     if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 92;
+        a->application = 57;
         a->confidence = APPID_CONFIDENCE_NORMAL;
         a->match_payload = a->payload_offset + (p - payload);
         if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
     }
  } any*;
 
-slsk_response = 
-    any any 0x00 0x00			# message length (assume < 2^16)
-    0x01 0x00 0x00 0x00			# login reply message type
-    0x01				# login success flag
-    any any 0x00 0x00			# string length (assume < 2^16)
-    ;
-slsk_login =
-    any 0x00 0x00 0x00			# message length (assume < 256)
-    0x01 0x00 0x00 0x00			# login message type
-    any 0x00				# username length (assume < 256)
-    ;
-soulseek = ( slsk_login | slsk_response ) @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 100;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-ssl_20 = 
-    any any		    # Length
-    (1 | 4)		    # Message type: Client or Server Hello
-    ((2 0) | (3 0) | (3 1));# Version: SSL 2.0 or 3.0, TLS 1.0
-tls_10 =
-    22		    	    # Content type: Handshake (22)
-    3 (0 | 1);	    	    # Version: {3, 1} (TLS 1.0)
-ssl = (ssl_20 | tls_10) @{ 
-    a->match_count ++;
-    if(a->confidence < APPID_CONFIDENCE_NORMAL) {
-        a->application = 103;
-        a->confidence = APPID_CONFIDENCE_NORMAL;
-        a->match_payload = a->payload_offset + (p - payload);
-        if (APPID_CONFIDENCE_NORMAL > APPID_CONFIDENCE_NORMAL) fbreak;
-    }
- } any*;
-
-	apps = aim | iax | mysql | opennap | oracle | qq | sccp | soulseek | ssl ;
+	apps = opennap | iax | sccp | ssl | oracle | soulseek | aim | qq | mysql ;
 	main := apps;
 }%%
 
@@ -2679,7 +2622,7 @@ appid_process(
 #if APPID_DEBUG
 		else if (appid_debug) {
 			if (previous_match_count != a->match_count) 
-			        printf("  ACCEPT dns (app == %%d == '%s')\n",
+			        printf("  ACCEPT dns (app == %d == '%s')\n",
 					a->application, appid_app_to_name(a->application));
 			else 
 				printf("CONTINUE dns\\n");
@@ -2707,7 +2650,7 @@ appid_process(
 #if APPID_DEBUG
 		else if (appid_debug) {
 			if (previous_match_count != a->match_count) 
-			        printf("  ACCEPT default (app == %%d == '%s')\n",
+			        printf("  ACCEPT default (app == %d == '%s')\n",
 					a->application, appid_app_to_name(a->application));
 			else 
 				printf("CONTINUE default\\n");
@@ -2735,7 +2678,7 @@ appid_process(
 #if APPID_DEBUG
 		else if (appid_debug) {
 			if (previous_match_count != a->match_count) 
-			        printf("  ACCEPT any8 (app == %%d == '%s')\n",
+			        printf("  ACCEPT any8 (app == %d == '%s')\n",
 					a->application, appid_app_to_name(a->application));
 			else 
 				printf("CONTINUE any8\\n");
@@ -2763,7 +2706,7 @@ appid_process(
 #if APPID_DEBUG
 		else if (appid_debug) {
 			if (previous_match_count != a->match_count) 
-			        printf("  ACCEPT any4 (app == %%d == '%s')\n",
+			        printf("  ACCEPT any4 (app == %d == '%s')\n",
 					a->application, appid_app_to_name(a->application));
 			else 
 				printf("CONTINUE any4\\n");
@@ -2791,7 +2734,7 @@ appid_process(
 #if APPID_DEBUG
 		else if (appid_debug) {
 			if (previous_match_count != a->match_count) 
-			        printf("  ACCEPT any16 (app == %%d == '%s')\n",
+			        printf("  ACCEPT any16 (app == %d == '%s')\n",
 					a->application, appid_app_to_name(a->application));
 			else 
 				printf("CONTINUE any16\\n");
@@ -2819,7 +2762,7 @@ appid_process(
 #if APPID_DEBUG
 		else if (appid_debug) {
 			if (previous_match_count != a->match_count) 
-			        printf("  ACCEPT any (app == %%d == '%s')\n",
+			        printf("  ACCEPT any (app == %d == '%s')\n",
 					a->application, appid_app_to_name(a->application));
 			else 
 				printf("CONTINUE any\\n");
