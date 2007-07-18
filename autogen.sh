@@ -1,4 +1,6 @@
 #!/bin/sh
 
+aclocal
+libtoolize --copy
 autoconf
-automake --foreign -c -i
+automake --foreign --copy --ignore-deps --add-missing
