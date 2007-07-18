@@ -17,8 +17,7 @@ regenerate pyappid.c from any modifications to appid.pyx, after which
 you should proceed with the usual Python build.
 
 After modifying Makefile.am or configure.in, you will want to run the
-top-level autogen.sh to regenerate the Makefile.in and configure
-files.
+top-level bootstrap to regenerate the Makefile.in and configure files.
 
 
 Protocol prioritizing
