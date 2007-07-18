@@ -60,6 +60,6 @@ mrproper: clean genclean
 
 EXTRA_DIST =	appid.h.tmpl appid.h appid.rl.tmpl appid.rl \
 		appid_list.c.tmpl appid.pyx pyappid.c setup.py \
-		HACKING LICENSE autogen.sh gencode.py stpy.py template
+		HACKING LICENSE bootstrap gencode.py stpy.py template
 
 DISTCLEANFILES = *~ apps/*~
