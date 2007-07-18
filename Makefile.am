@@ -30,6 +30,7 @@ python-clean:
 	rm -rf *build
 
 clean: python-clean
+	rm -rf *.pyc
 
 distclean: clean
 
@@ -47,6 +48,15 @@ endif
 
 genclean: distclean
 	rm -f appid.h appid.c appid_list.c appid.rl
+
+# Remove anything that could ever be generated.
+mrproper: clean genclean
+	rm -f Makefile.in aclocal.m4 config.guess config.sub pyappid.c ltmain.sh
+	rm -f configure install-sh missing depcomp mkinstalldirs
+	rm -rf autom4te.cache
+	rm -f appid_apps-$(VERSION).tar.gz
+	rm -f appid-$(VERSION).tar.gz
+	rm -rf appid-$(VERSION)
 
 EXTRA_DIST =	appid.h.tmpl appid.h appid.rl.tmpl appid.rl \
 		appid_list.c.tmpl appid.pyx pyappid.c setup.py \
