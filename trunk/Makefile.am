@@ -12,15 +12,12 @@ dist: appid_apps-$(VERSION).tar.gz
 appid_apps-$(VERSION).tar.gz:
 	tar zcf $@ apps
 
-if PYTHON
+if HAVE_PYTHON
 # XXX - some hackery here
 noinst_SCRIPTS = python-build
 
 appid.rl appid.h appid_list.c: appid.h.tmpl appid_list.c.tmpl appid.rl.tmpl
 	$(PYTHON) gencode.py
-
-pyappid.c: appid.pyx
-	pyrexc -o $@ appid.pyx
 
 python-build: pyappid.c
 	$(PYTHON) setup.py build
@@ -38,10 +35,14 @@ python-install:
 	$(PYTHON) setup.py install --prefix=$(DESTDIR)$(prefix)
 
 install-exec-local: python-install
-
 endif
 
-if RAGEL
+if HAVE_PYREX
+pyappid.c: appid.pyx
+	pyrexc -o $@ appid.pyx
+endif
+
+if HAVE_RAGEL
 appid.c: appid.rl
 	$(RAGEL) appid.rl | $(RLGEN) -G2 -o $@
 endif
