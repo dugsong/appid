@@ -2,7 +2,7 @@
 # All rights reserved.  Proprietary and confidential.
 
 Name: Kerberos
-AppID: 122
+AppID: 123
 Port: tcp/88 tcp/4444 udp/88 udp/4444
 
 # Required by kerberos_tcp, kerberos_udp
