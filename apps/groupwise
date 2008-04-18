@@ -17,11 +17,16 @@ Port: tcp/8300
 # 
 # XXX: anyone know of a Groupwise server we can test against?
 
-groupwise_login = 
+groupwise_header = 
     "POST /login" [^ ]+ " HTTP/1." digit "\r\n"		# HTTP/1.x POST
     (((any - [\r])+ "\r\n")*) :>> 			# additional HTTP headers
-    ( "\r\n\r\n"					# end of HTTP header
-      "&"? "tag=NM_A_SZ_USERID"i  )			# POST data
+    ( "\r\n\r\n")					# end of HTTP header
+    ;
+
+groupwise_login = 
+    groupwise_header
+      (("&"? "tag=NM_A_SZ_USERID"i  ) |			# POST data
+      ("&"? "tag=NM_A"i  ))      			# POST data
     ;
 
 groupwise = groupwise_login @<MATCH> any*;
