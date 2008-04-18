@@ -12,6 +12,12 @@ Port: udp/26000
 #
 # http://www.gamers.org/dEngine/quake/spec/quake-spec34/qkspec_8.htm
 # http://www.gamers.org/dEngine/quake/QDP/qnp.html
+#
+# TODO: Quake1 session data looks like DNS on the wrong port.
+# To fix this, we need a Quake1 application plugin decoder to
+# track the ephemeral port (in the Quake server reply), then
+# mark that port as a Quake1 stream.
+#
 
 quake1_conn_request = 
     0x80 0x00			# control message type
