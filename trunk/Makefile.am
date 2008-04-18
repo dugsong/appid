@@ -1,3 +1,4 @@
+AUTOMAKE_OPTIONS= foreign
 
 include_HEADERS = appid.h
 
