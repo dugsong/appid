@@ -15,18 +15,26 @@ Port: tcp/8300
 # This signature was developed from looking at the gaim plugin for
 # Groupwise written by Novell since no protocol documentation exists.
 # 
-# XXX: anyone know of a Groupwise server we can test against?
+# This signature is a moving target, so may need to be updated
+# more often than others.
+# 
 
 groupwise_header = 
-    "POST /login" [^ ]+ " HTTP/1." digit "\r\n"		# HTTP/1.x POST
+    "POST /login" [^ ]* " HTTP/1." digit "\r\n"		# HTTP/1.x POST
+# consume non-empty header lines:
     (((any - [\r])+ "\r\n")*) :>> 			# additional HTTP headers
-    ( "\r\n\r\n")					# end of HTTP header
+# consume an empty line:
+    ( "\r\n")					        # end of HTTP header
     ;
 
 groupwise_login = 
     groupwise_header
-      (("&"? "tag=NM_A_SZ_USERID"i  ) |			# POST data
-      ("&"? "tag=NM_A"i  ))      			# POST data
+# USERID variable appears to be deprecated:
+#      (("&"? "tag=NM_A_SZ_USERID"i  ) |			# POST data
+#
+# Expect that Groupwise is the only app using tag=NM_A_.* variable
+# names.
+      ("&"? "tag=NM_A_"i  )      			# POST data
     ;
 
 groupwise = groupwise_login @<MATCH> any*;
