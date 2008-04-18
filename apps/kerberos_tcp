@@ -2,10 +2,10 @@
 # All rights reserved.  Proprietary and confidential.
 
 Name: Kerberos
-AppID: 46
-Port: tcp/88 tcp/4444
+AppID: APPID_KERBEROS
+# Port: tcp/88 tcp/4444
+Requires: kerberos_common
 Machine: any4
-Requires: kerberos
 
 kerberos_tcp = 
     ((any{4} kerberos_msg_tag0) |

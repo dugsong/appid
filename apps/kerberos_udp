@@ -2,9 +2,9 @@
 # All rights reserved.  Proprietary and confidential.
 
 Name: Kerberos
-AppID: 45
-Port: udp/88 udp/4444
-Requires: kerberos
+AppID: APPID_KERBEROS
+# Port: udp/88 udp/4444
+Requires: kerberos_common
 
 kerberos_udp = 
     (kerberos_msg_tag0 | kerberos_msg_tag1 | kerberos_ticket)
