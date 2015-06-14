@@ -1,0 +1,1 @@
+appid identifies the application protocol in a content stream, based on patterns (similar to regular expressions) which are compiled into a single state machine for single-pass matching.
